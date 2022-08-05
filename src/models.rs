@@ -10,12 +10,12 @@ pub struct Post {
 
 use super::schema::posts;
 
-#[derive(Insertable)]
+#[derive(Insertable, Deserialize)]
 #[table_name = "posts"]
-pub struct NewPost<'a> {
-    pub title: &'a str,
-    pub slug: &'a str,
-    pub body: &'a str,
+pub struct NewPost {
+    pub title: String,
+    pub slug: String,
+    pub body: String,
 }
 
 #[derive(Serialize)]

@@ -56,18 +56,14 @@ async fn get_post_handler(db_pool: web::Data<DBpool>, search_id: web::Path<i32>)
 }
 
 #[post("/posts")]
-async fn insert_post_handler(db_pool: web::Data<DBpool>, new_post: web::Json<Post>) -> Result<HttpResponse, Error> {
+async fn insert_post_handler(db_pool: web::Data<DBpool>, new_post: web::Json<NewPost>) -> Result<HttpResponse, Error> {
     let conn = db_pool.get().expect("couldn't get db connection from pool");
 
-    let post = web::block(move || insert_post(&conn, &NewPost{
-        title: &new_post.title,
-        slug: &new_post.slug,
-        body: &new_post.body,
-    }))
+    let p = web::block(move || insert_post(&conn, &*new_post))
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(post))
+    Ok(HttpResponse::Ok().json(p))
 }
 
 #[delete("/posts/{search_id}")]
@@ -82,14 +78,10 @@ async fn delete_post_handler(db_pool: web::Data<DBpool>, search_id: web::Path<i3
 }
 
 #[put("/posts/{search_id}")]
-async fn update_post_handler(db_pool: web::Data<DBpool>, search_id: web::Path<i32>, new_post: web::Json<Post>) -> Result<HttpResponse, Error> {
+async fn update_post_handler(db_pool: web::Data<DBpool>, search_id: web::Path<i32>, new_post: web::Json<NewPost>) -> Result<HttpResponse, Error> {
     let conn = db_pool.get().expect("couldn't get db connection from pool");
 
-    let post = web::block(move || update_post(&conn, search_id.into_inner(), &NewPost{
-        title: &new_post.title,
-        slug: &new_post.slug,
-        body: &new_post.body,
-    }))
+    let post = web::block(move || update_post(&conn, search_id.into_inner(), &new_post))
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
